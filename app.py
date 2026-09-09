@@ -609,6 +609,104 @@ if predict:
     probability = model.predict_proba(
         customer_scaled
     )[0][1]
+    # ==============================
+# MODEL INTERPRETABILITY
+# ==============================
+
+if hasattr(model, "coef_"):
+
+    coefficients = model.coef_[0]
+
+    contributions = customer_scaled[0] * coefficients
+
+    explanation = pd.DataFrame({
+        "Feature": features,
+        "Contribution": contributions
+    })
+
+    explanation["Importance"] = explanation["Contribution"].abs()
+
+    top_features = (
+        explanation
+        .sort_values("Importance", ascending=False)
+        .head(10)
+        .sort_values("Contribution")
+    )
+
+    st.markdown("### 🔍 Why this prediction?")
+
+    st.caption(
+        "Positive values increase churn risk, while negative values reduce churn risk."
+    )
+
+    st.bar_chart(
+        top_features.set_index("Feature")["Contribution"],
+        horizontal=True
+    )
+
+    # Risk increasing factors
+    positive_factors = (
+        explanation[explanation["Contribution"] > 0]
+        .sort_values("Contribution", ascending=False)
+        .head(5)
+    )
+
+    # Risk reducing factors
+    negative_factors = (
+        explanation[explanation["Contribution"] < 0]
+        .sort_values("Contribution")
+        .head(5)
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.markdown(
+            """
+            <div class="info-card">
+            <h4>🔴 Factors Increasing Churn Risk</h4>
+            """,
+            unsafe_allow_html=True
+        )
+
+        if len(positive_factors) > 0:
+
+            for _, row in positive_factors.iterrows():
+
+                st.write(
+                    f"• **{row['Feature']}** "
+                    f"(+{row['Contribution']:.3f})"
+                )
+
+        else:
+            st.write("No strong positive risk factors.")
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col2:
+
+        st.markdown(
+            """
+            <div class="info-card">
+            <h4>🟢 Factors Reducing Churn Risk</h4>
+            """,
+            unsafe_allow_html=True
+        )
+
+        if len(negative_factors) > 0:
+
+            for _, row in negative_factors.iterrows():
+
+                st.write(
+                    f"• **{row['Feature']}** "
+                    f"({row['Contribution']:.3f})"
+                )
+
+        else:
+            st.write("No strong protective factors.")
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
     # =====================================================
