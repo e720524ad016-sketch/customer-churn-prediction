@@ -599,6 +599,7 @@ if predict:
 
     customer = customer[features]
 
+if predict:
 
     # =====================================================
     # SCALE + PREDICT
@@ -609,30 +610,32 @@ if predict:
     probability = model.predict_proba(
         customer_scaled
     )[0][1]
+
     # ==============================
-# MODEL INTERPRETABILITY
-# ==============================
+    # MODEL INTERPRETABILITY
+    # ==============================
 
-if hasattr(model, "coef_"):
+    if hasattr(model, "coef_"):
 
-    coefficients = model.coef_[0]
-    customer_scaled = scaler.transform(customer)
-    contributions = customer_scaled[0] * coefficients
+        coefficients = model.coef_[0]
 
-    explanation = pd.DataFrame({
-        "Feature": features,
-        "Contribution": contributions
-    })
+        customer_scaled = scaler.transform(customer)
 
-    explanation["Importance"] = explanation["Contribution"].abs()
+        contributions = customer_scaled[0] * coefficients
 
-    top_features = (
-        explanation
-        .sort_values("Importance", ascending=False)
-        .head(10)
-        .sort_values("Contribution")
-    )
+        explanation = pd.DataFrame({
+            "Feature": features,
+            "Contribution": contributions
+        })
 
+        explanation["Importance"] = explanation["Contribution"].abs()
+
+        top_features = (
+            explanation
+            .sort_values("Importance", ascending=False)
+            .head(10)
+            .sort_values("Contribution")
+        )
     st.markdown("### 🔍 Why this prediction?")
 
     st.caption(
