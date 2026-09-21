@@ -616,7 +616,7 @@ if predict:
 if hasattr(model, "coef_"):
 
     coefficients = model.coef_[0]
-    customer_scaled = scaler.transform(customer_data)
+    customer_scaled = scaler.transform(customer)
     contributions = customer_scaled[0] * coefficients
 
     explanation = pd.DataFrame({
